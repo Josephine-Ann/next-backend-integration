@@ -5,9 +5,8 @@ const pathMatch = require('path-match');
 const app = next({ dev });
 const handle = app.getRequestHandler();
 const { parse } = require('url');
-const { ApolloServer, gql } = require('apollo-server-express')
 
-app.prepare().then(() => {
+app.prepare().then(async () => {
     const server = express();
 
     // Server-side
@@ -16,6 +15,11 @@ app.prepare().then(() => {
     server.get('/anything', (req, res) => {
         const params = route('/anything')(parse(req.url).pathname);
         return app.render(req, res, '/anything', params);
+    });
+
+    server.get('/graphql', (req, res) => {
+        const params = route('/graphql')(parse(req.url).pathname);
+        return app.render(req, res, '/graphql', params);
     });
 
     server.get('/stories', (req, res) => {
@@ -27,9 +31,13 @@ app.prepare().then(() => {
         return handle(req, res);
     });
 
+    // const serverStart = apolloServer.start();
+
     /* eslint-disable no-console */
-    server.listen(3000, (err) => {
+    server.listen(3000, async (err) => {
         if (err) throw err;
         console.log('Server ready on http://localhost:3000');
     });
 });
+
+

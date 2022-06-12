@@ -1,5 +1,7 @@
 import clientPromise from '../../lib/mongodb';
 
+let storiesArray;
+
 export default async (req, res) => {
 
     const client = await clientPromise;

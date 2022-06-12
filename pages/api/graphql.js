@@ -1,16 +1,13 @@
 import Cors from 'micro-cors';
-import { gql, ApolloServer } from 'apollo-server-micro';
-
-export const config = {
-    api: {
-        bodyParser: false
-    }
-}
+import { gql, ApolloServer } from 'apollo-server-express';
+import { ApolloServerPluginLandingPageGraphQLPlayground } from 'apollo-server-core';
 
 const storiesArray = [
     { id: '1', name: 'Anna', story: "chef" },
-    { id: '2', name: 'Ralph', story: "artist" },
+    { id: '2', name: 'Ralph', story: "artist" }
 ]
+
+const cors = Cors()
 
 const typeDefs = gql`
         type Story {
@@ -19,32 +16,54 @@ const typeDefs = gql`
             story: String
         }
         type Query {
-            stories: [Story]
+            stories: [Story!]!
         }
     `
+
 const resolvers = {
     Query: {
         stories: () => storiesArray
     }
 }
 
-const cors = Cors()
-
 const apolloServer = new ApolloServer({
     typeDefs,
     resolvers,
     introspection: true,
-    playground: true
-})
+    plugins: [ApolloServerPluginLandingPageGraphQLPlayground({})]
+});
 
-const serverStart = apolloServer.start();
 
-cors(async (req, res) => {
-    if (req.method === "OPTIONS") {
-        res.end();
-        return false;
+export const config = {
+    api: {
+        bodyParser: false,
+        externalResolver: true
     }
-    await serverStart;
-    await apolloServer.createHandler({ path: '/api/graphql' })(req, res);
-})
+}
+
+const startServer = apolloServer.start();
+
+export default cors(async function handler(req, res) {
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader(
+        "Access-Control-Allow-Origin",
+        "https://studio.apollographql.com"
+    );
+    res.setHeader(
+        "Access-Control-Allow-Headers",
+        "Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Methods, Access-Control-Allow-Origin, Access-Control-Allow-Credentials, Access-Control-Allow-Headers"
+    );
+    res.setHeader(
+        "Access-Control-Allow-Methods",
+        "POST, GET, PUT, PATCH, DELETE, OPTIONS, HEAD"
+    );
+    if (req.method === 'OPTIONS') {
+        res.end()
+        return false
+    }
+    await startServer
+    await apolloServer.getMiddleware({
+        path: '/api/graphql'
+    })(req, res)
+});
 
