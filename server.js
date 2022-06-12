@@ -1,26 +1,14 @@
 const express = require('express');
-const bodyParser = require('body-parser');
-const session = require('express-session');
-const path = require('path');
 const dev = process.env.NODE_ENV !== 'production';
 const next = require('next');
 const pathMatch = require('path-match');
 const app = next({ dev });
 const handle = app.getRequestHandler();
 const { parse } = require('url');
-
+const { ApolloServer, gql } = require('apollo-server-express')
 
 app.prepare().then(() => {
     const server = express();
-
-    server.use(bodyParser.json());
-    server.use(session({
-        secret: 'super-secret-key',
-        resave: false,
-        saveUninitialized: false,
-        cookie: { maxAge: 60000 }
-    }));
-
 
     // Server-side
     const route = pathMatch();

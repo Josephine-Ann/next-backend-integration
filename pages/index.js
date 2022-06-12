@@ -1,8 +1,11 @@
 import Head from 'next/head'
 // import Image from 'next/image'
 // import styles from '../styles/Home.module.css'
+import clientPromise from '../lib/mongodb';
 
-export default function Home() {
+
+export default function Home(stories) {
+  console.log()
   return (
     <div>
       <Head>
@@ -11,6 +14,26 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <h1>Hello World</h1>
+      <p>{stories.stories[0].name}</p>
     </div>
   )
+}
+
+export async function getServerSideProps() {
+  const client = await clientPromise;
+
+  const db = client.db("test");
+
+  const stories = await db
+    .collection("stories")
+    .find({})
+    .limit(20)
+    .toArray();
+
+
+  return {
+    props: {
+      stories: JSON.parse(JSON.stringify(stories)),
+    },
+  };
 }
